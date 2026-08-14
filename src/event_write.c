@@ -206,6 +206,8 @@ static void write_metadata(struct line_builder *builder, const struct p101_tool_
 
 static void write_payload(struct line_builder *builder, const struct p101_tool_event_output *record)
 {
+    const char *kind_name;
+
 #ifdef __clang__
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wcovered-switch-default"
@@ -213,13 +215,15 @@ static void write_payload(struct line_builder *builder, const struct p101_tool_e
     switch(record->record_kind)
     {
         case P101_TOOL_EVENT_RECORD_FD:
-            append_format(builder, "%s\t%d\t%d\t", p101_record_event_fd_kind_name(record->fd_kind), record->fd, record->line_number);
+            kind_name = p101_record_event_fd_kind_name(record->fd_kind);
+            append_format(builder, "%s\t%d\t%d\t", kind_name, record->fd, record->line_number);
             append_field(builder, record->function_name);
             append_char(builder, '\t');
             append_field(builder, record->file_name);
             break;
         case P101_TOOL_EVENT_RECORD_ALLOC:
-            append_format(builder, "%s\t", p101_record_event_alloc_kind_name(record->alloc_kind));
+            kind_name = p101_record_event_alloc_kind_name(record->alloc_kind);
+            append_format(builder, "%s\t", kind_name);
             append_field(builder, record->ptr);
             append_char(builder, '\t');
             append_field(builder, record->new_ptr);
@@ -259,7 +263,8 @@ static void write_payload(struct line_builder *builder, const struct p101_tool_e
             append_field(builder, record->target);
             break;
         case P101_TOOL_EVENT_RECORD_CALL:
-            append_format(builder, "%s\t%d\t", p101_record_event_call_kind_name(record->call_kind), record->line_number);
+            kind_name = p101_record_event_call_kind_name(record->call_kind);
+            append_format(builder, "%s\t%d\t", kind_name, record->line_number);
             append_field(builder, record->function_name);
             append_char(builder, '\t');
             append_field(builder, record->call_name);
@@ -271,7 +276,8 @@ static void write_payload(struct line_builder *builder, const struct p101_tool_e
             append_field(builder, record->file_name);
             break;
         case P101_TOOL_EVENT_RECORD_RESOURCE:
-            append_format(builder, "%s\t", p101_record_event_resource_kind_name(record->resource_kind));
+            kind_name = p101_record_event_resource_kind_name(record->resource_kind);
+            append_format(builder, "%s\t", kind_name);
             append_field(builder, record->resource_class);
             append_char(builder, '\t');
             append_field(builder, record->resource_id);
@@ -334,14 +340,17 @@ static bool output_is_valid(const struct p101_tool_event_output *record)
     size_t run_id_length;
 
     version       = record->version == 0 ? P101_TOOL_EVENT_LOG_VERSION : record->version;
-    run_id_length = record->run_id == NULL ? 0U : strlen(record->run_id);
+    run_id_length = 0U;
+    if(record->run_id != NULL)
+    {
+        run_id_length = strlen(record->run_id);
+    }
     if(version != P101_TOOL_EVENT_LOG_VERSION || record->run_id == NULL || record->run_id[0] == '\0' || run_id_length > P101_TOOL_EVENT_RUN_ID_MAX_BYTES || record->pid < 0 || (record->monotonic_ns_available != 0 && record->monotonic_ns_available != 1) ||
        (record->wall_unix_ns_available != 0 && record->wall_unix_ns_available != 1))
     {
         p101_single_result_ = false;
         goto p101_single_exit_;
     }
-    p101_single_result_ = false;
 #ifdef __clang__
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wcovered-switch-default"
@@ -349,32 +358,33 @@ static bool output_is_valid(const struct p101_tool_event_output *record)
     switch(record->record_kind)
     {
         case P101_TOOL_EVENT_RECORD_FD:
-            p101_single_result_ = record->fd >= 0 && record->fd <= EVENT_FD_MAX && record->line_number >= 0 && (record->fd_kind == P101_TOOL_EVENT_FD_OPEN || record->fd_kind == P101_TOOL_EVENT_FD_CLOSE);
+            p101_single_result_ = (record->fd >= 0 && record->fd <= EVENT_FD_MAX && record->line_number >= 0 && (record->fd_kind == P101_TOOL_EVENT_FD_OPEN || record->fd_kind == P101_TOOL_EVENT_FD_CLOSE)) != 0;
             break;
         case P101_TOOL_EVENT_RECORD_ALLOC:
-            p101_single_result_ = record->line_number >= 0 && (record->alloc_kind == P101_TOOL_EVENT_ALLOC_ALLOC || record->alloc_kind == P101_TOOL_EVENT_ALLOC_FREE || record->alloc_kind == P101_TOOL_EVENT_ALLOC_REALLOC);
+            p101_single_result_ = (record->line_number >= 0 && (record->alloc_kind == P101_TOOL_EVENT_ALLOC_ALLOC || record->alloc_kind == P101_TOOL_EVENT_ALLOC_FREE || record->alloc_kind == P101_TOOL_EVENT_ALLOC_REALLOC)) != 0;
             break;
         case P101_TOOL_EVENT_RECORD_CALL:
-            p101_single_result_ = record->line_number >= 0 && (record->call_kind == P101_TOOL_EVENT_CALL_ENTER || record->call_kind == P101_TOOL_EVENT_CALL_EXIT);
+            p101_single_result_ = (record->line_number >= 0 && (record->call_kind == P101_TOOL_EVENT_CALL_ENTER || record->call_kind == P101_TOOL_EVENT_CALL_EXIT)) != 0;
             break;
         case P101_TOOL_EVENT_RECORD_RESOURCE:
-            p101_single_result_ = record->line_number >= 0 && (record->resource_kind == P101_TOOL_EVENT_RESOURCE_ACQUIRE || record->resource_kind == P101_TOOL_EVENT_RESOURCE_RELEASE || record->resource_kind == P101_TOOL_EVENT_RESOURCE_REPLACE ||
-                                                               record->resource_kind == P101_TOOL_EVENT_RESOURCE_TRANSFER);
+            p101_single_result_ = (record->line_number >= 0 && (record->resource_kind == P101_TOOL_EVENT_RESOURCE_ACQUIRE || record->resource_kind == P101_TOOL_EVENT_RESOURCE_RELEASE || record->resource_kind == P101_TOOL_EVENT_RESOURCE_REPLACE ||
+                                                                record->resource_kind == P101_TOOL_EVENT_RESOURCE_TRANSFER)) != 0;
             break;
         case P101_TOOL_EVENT_RECORD_FORK:
         case P101_TOOL_EVENT_RECORD_SPAWN:
-            p101_single_result_ = record->child_pid >= 0 && record->line_number >= 0;
+            p101_single_result_ = (record->child_pid >= 0 && record->line_number >= 0) != 0;
             break;
         case P101_TOOL_EVENT_RECORD_EXEC:
-            p101_single_result_ = record->fd >= 0 && record->fd <= EVENT_FD_MAX && (record->cloexec == 0 || record->cloexec == 1) && record->line_number >= 0;
+            p101_single_result_ = (record->fd >= 0 && record->fd <= EVENT_FD_MAX && (record->cloexec == 0 || record->cloexec == 1) && record->line_number >= 0) != 0;
             break;
         case P101_TOOL_EVENT_RECORD_EXEC_FAIL:
-            p101_single_result_ = record->line_number >= 0;
+            p101_single_result_ = (record->line_number >= 0) != 0;
             break;
         case P101_TOOL_EVENT_RECORD_COMPLETE:
-            p101_single_result_ = (record->write_failed == 0 || record->write_failed == 1) && ((record->write_failed == 0 && record->write_errno == 0) || (record->write_failed == 1 && record->write_errno > 0));
+            p101_single_result_ = ((record->write_failed == 0 || record->write_failed == 1) && ((record->write_failed == 0 && record->write_errno == 0) || (record->write_failed == 1 && record->write_errno > 0))) != 0;
             break;
         default:
+            p101_single_result_ = false;
             break;
     }
 #ifdef __clang__

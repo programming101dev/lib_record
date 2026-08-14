@@ -1,0 +1,13 @@
+# lib_record is the dependency-free event wire layer used by lib_env. It must
+# serialize records without calling through the instrumented wrapper stack that
+# is producing those records. These are its complete reviewed libc/POSIX
+# implementation boundary.
+src/event_write.c		c:@F@memset
+src/event_write.c		c:@F@flockfile
+src/event_write.c		c:@F@fflush
+src/event_write.c		c:@F@fileno
+src/event_write.c		c:@F@write
+src/event_write.c		c:@F@funlockfile
+src/event_write.c		c:@F@vsnprintf
+src/event_write.c		c:@F@strlen
+src/record.c		c:@F@strcmp

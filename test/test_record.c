@@ -16,14 +16,14 @@ static int check(bool condition, int line)
     return status;
 }
 
-#define CHECK(expression)                                                                                                              \
-    do                                                                                                                                 \
-    {                                                                                                                                  \
-        status = check((expression), __LINE__);                                                                                         \
-        if(status != EXIT_SUCCESS)                                                                                                     \
-        {                                                                                                                              \
-            goto done;                                                                                                                 \
-        }                                                                                                                              \
+#define CHECK(expression)                                                                                                                                                                                                                                          \
+    do                                                                                                                                                                                                                                                             \
+    {                                                                                                                                                                                                                                                              \
+        status = check((expression), __LINE__);                                                                                                                                                                                                                    \
+        if(status != EXIT_SUCCESS)                                                                                                                                                                                                                                 \
+        {                                                                                                                                                                                                                                                          \
+            goto done;                                                                                                                                                                                                                                             \
+        }                                                                                                                                                                                                                                                          \
     } while(0)
 
 int main(void)
