@@ -368,7 +368,7 @@ static bool output_is_valid(const struct p101_tool_event_output *record)
             break;
         case P101_TOOL_EVENT_RECORD_RESOURCE:
             p101_single_result_ = (record->line_number >= 0 && (record->resource_kind == P101_TOOL_EVENT_RESOURCE_ACQUIRE || record->resource_kind == P101_TOOL_EVENT_RESOURCE_RELEASE || record->resource_kind == P101_TOOL_EVENT_RESOURCE_REPLACE ||
-                                                                record->resource_kind == P101_TOOL_EVENT_RESOURCE_TRANSFER)) != 0;
+                                                                record->resource_kind == P101_TOOL_EVENT_RESOURCE_TRANSFER || record->resource_kind == P101_TOOL_EVENT_RESOURCE_USE)) != 0;
             break;
         case P101_TOOL_EVENT_RECORD_FORK:
         case P101_TOOL_EVENT_RECORD_SPAWN:
@@ -431,7 +431,11 @@ const char *p101_record_event_call_kind_name(p101_tool_event_call_kind kind)
 
 const char *p101_record_event_resource_kind_name(p101_tool_event_resource_kind kind)
 {
-    static const char *const names[] = {[P101_TOOL_EVENT_RESOURCE_ACQUIRE] = "ACQUIRE", [P101_TOOL_EVENT_RESOURCE_RELEASE] = "RELEASE", [P101_TOOL_EVENT_RESOURCE_REPLACE] = "REPLACE", [P101_TOOL_EVENT_RESOURCE_TRANSFER] = "TRANSFER"};
+    static const char *const names[] = {[P101_TOOL_EVENT_RESOURCE_ACQUIRE]  = "ACQUIRE",
+                                        [P101_TOOL_EVENT_RESOURCE_RELEASE]  = "RELEASE",
+                                        [P101_TOOL_EVENT_RESOURCE_REPLACE]  = "REPLACE",
+                                        [P101_TOOL_EVENT_RESOURCE_TRANSFER] = "TRANSFER",
+                                        [P101_TOOL_EVENT_RESOURCE_USE]      = "USE"};
     return names[kind];
 }
 

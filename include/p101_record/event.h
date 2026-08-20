@@ -59,7 +59,8 @@ extern "C"
         P101_TOOL_EVENT_RESOURCE_ACQUIRE = 0,
         P101_TOOL_EVENT_RESOURCE_RELEASE,
         P101_TOOL_EVENT_RESOURCE_REPLACE,
-        P101_TOOL_EVENT_RESOURCE_TRANSFER
+        P101_TOOL_EVENT_RESOURCE_TRANSFER,
+        P101_TOOL_EVENT_RESOURCE_USE
     } p101_tool_event_resource_kind;
 
     struct p101_tool_event_output

@@ -1,3 +1,4 @@
+#include <p101_record/event.h>
 #include <p101_record/record.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -41,6 +42,7 @@ int main(void)
     CHECK(p101_record_parse_size("42", &value) == 1);
     CHECK(value == 42U);
     CHECK(p101_record_parse_size("42x", &value) == 0);
+    CHECK(strcmp(p101_record_event_resource_kind_name(P101_TOOL_EVENT_RESOURCE_USE), "USE") == 0);
 done:
     return status;
 }
